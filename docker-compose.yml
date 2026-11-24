@@ -1,0 +1,11 @@
+services:
+  chance-to-alert:
+    build: .
+    container_name: chance_to_alert_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env

@@ -1,0 +1,98 @@
+# Geographic and Tactical Presets for Odesa Region
+# Chance to Alert.App
+
+presets:
+  odesa_district:
+    name: "Odesa District"
+    description: "Metropolitan district of Odesa including coastal communities and suburban perimeter"
+    centroid:
+      lat: 46.4825
+      lon: 30.7233
+    radius_km: 35.0
+    warning_radius_km: 100.0
+    zones:
+      immediate: 15.0
+      urban: 35.0
+      approach: 70.0
+      transit: 120.0
+    monitored_places:
+      - "Одеса"
+      - "Чорноморськ"
+      - "Южне"
+      - "Фонтанка"
+      - "Таїрове"
+      - "Усатове"
+      - "Нерубайське"
+      - "Дачне"
+      - "Біляївка"
+      - "Овідіополь"
+      - "Затока"
+      - "Великодолинське"
+      - "Крижанівка"
+      - "Доброслав"
+      - "Сухий Лиман"
+    transit_corridors:
+      - "Чорноморський морський підхід (мис Великий Фонтан - Дофінівка)"
+      - "Миколаївський коридор (Коблеве - Южне - Одеса)"
+      - "Дунайсько-Дністровський коридор (Білгород-Дністровський - Затока)"
+      - "Кучурганський / Придністровський коридор"
+
+  odesa_tairovo:
+    name: "Таїрова / Ліцей Гармонія"
+    description: "Житловий масив Таїрова, Київський район Одеси та периметр ліцею Гармонія"
+    centroid:
+      lat: 46.4020
+      lon: 30.7180
+    radius_km: 7.0
+    warning_radius_km: 50.0
+    zones:
+      immediate: 3.0
+      urban: 7.0
+      approach: 25.0
+      transit: 60.0
+    monitored_places:
+      - "Таїрове"
+      - "Таирово"
+      - "Ліцей Гармонія"
+      - "Лицей Гармония"
+      - "Корольова"
+      - "Королева"
+      - "Глушка"
+      - "Глушко"
+      - "Вільямса"
+      - "Вильямса"
+      - "Люстдорфська дорога"
+      - "Чорноморка"
+      - "Сухий Лиман"
+      - "Чорноморськ"
+    transit_corridors:
+      - "Чорноморський морський підхід через Чорноморку та мис Великий Фонтан"
+      - "Коридор з моря через Сухий Лиман"
+
+  odesa_oblast:
+    name: "Odesa Oblast"
+    description: "Entire administrative region of Odesa Oblast from Danube delta to Podillia"
+    centroid:
+      lat: 46.5000
+      lon: 30.5000
+    radius_km: 150.0
+    warning_radius_km: 250.0
+    zones:
+      core: 50.0
+      oblast_inner: 150.0
+      oblast_outer: 250.0
+    monitored_places:
+      - "Одеса"
+      - "Ізмаїл"
+      - "Рені"
+      - "Кілія"
+      - "Вилкове"
+      - "Білгород-Дністровський"
+      - "Подільськ"
+      - "Роздільна"
+      - "Березівка"
+      - "Чорноморськ"
+      - "Южне"
+    transit_corridors:
+      - "Дунайський портовий коридор (Рені - Ізмаїл - Кілія)"
+      - "Морський коридор острів Зміїний - узбережжя"

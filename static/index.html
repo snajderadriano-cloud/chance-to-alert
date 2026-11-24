@@ -1,0 +1,2788 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>Chance to Alert · Odesa</title>
+  <meta name="description" content="Тактический радар воздушных угроз Одессы (Таирова) и Лицея «Гармония»">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/static/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS (Motion Studies / DesignBookmark / Kokonut UI)
+       Zero AI-slop: crisp typography, true dark stage, authentic spring physics.
+       ========================================================================== */
+    :root {
+      --stage: #000;
+      --card: #171717;
+      --surface: #262626;
+      --surface-hover: #303030;
+      --fill-1: rgba(255, 255, 255, .05);
+      --fill-2: rgba(255, 255, 255, .09);
+      --fill-3: rgba(255, 255, 255, .14);
+      --line: rgba(255, 255, 255, .12);
+      --text: #fff;
+      --text-2: rgba(255, 255, 255, .78);
+      --muted: #9a9a9a;
+      --muted-2: #828282;
+      --chip-text: #b4b4b4;
+      --green: #34d17a;
+      --green-text: #3ce085;
+      --green-soft: rgba(52, 209, 122, .14);
+      --orange: #ff9f0a;
+      --orange-soft: rgba(255, 159, 10, .14);
+      --red: #ff5a5f;
+      --red-soft: rgba(255, 90, 95, .14);
+      --blue: #3ec9ff;
+      --blue-soft: rgba(62, 201, 255, .14);
+      --purple: #c69bff;
+      --inverse: #fff;
+      --on-inverse: #000;
+      --r-card: 26px;
+      --r-tile: 14px;
+      --r-row: 12px;
+      --r-pill: 999px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      background: var(--stage);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 440px;
+      padding: 14px 16px 96px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 2px;
+    }
+
+    .location-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 6px 14px;
+      border-radius: var(--r-pill);
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .location-badge:active {
+      background: var(--surface);
+    }
+
+    .location-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .location-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .location-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-pill {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--r-pill);
+      background: var(--fill-2);
+      border: 1px solid var(--fill-3);
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .action-pill:active {
+      background: var(--fill-3);
+    }
+
+    /* Cards */
+    .motion-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+    }
+
+    /* SmoothUI Exposure Slider & Threat Hero */
+    .threat-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 16px 20px;
+      text-align: center;
+    }
+
+    .progress-circle-wrap {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-circle-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .circle-bg {
+      fill: none;
+      stroke: var(--fill-2);
+      stroke-width: 6;
+    }
+
+    .circle-val {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 276.46;
+      stroke-dashoffset: 276.46;
+      transition: stroke-dashoffset 0.6s cubic-bezier(0.23, 1, 0.32, 1), stroke 0.3s;
+    }
+
+    .circle-inner-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .prob-num {
+      font-size: 42px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      letter-spacing: -1.5px;
+      color: var(--text);
+    }
+
+    .prob-caption {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .stream-live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green-text);
+      background: var(--green-soft);
+      border: 1px solid rgba(52, 209, 122, 0.28);
+      border-radius: var(--r-pill);
+      padding: 5px 12px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      margin-bottom: 8px;
+    }
+
+    .live-blink-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: liveBlink 1.4s infinite;
+    }
+
+    @keyframes liveBlink {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.3;
+        transform: scale(0.85);
+      }
+    }
+
+    /* SmoothUI Ticker Notch Slider */
+    .ticker-container {
+      position: relative;
+      width: 100%;
+      height: 40px;
+      overflow: hidden;
+      mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
+    }
+
+    .ticker-track {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 100%;
+    }
+
+    .notch {
+      width: 3px;
+      height: 28px;
+      border-radius: 2px;
+      background: var(--muted-2);
+      opacity: 0.3;
+      transition: all 0.3s ease;
+    }
+
+    .notch.active {
+      height: 38px;
+      background: var(--green);
+      opacity: 1;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .notch.near {
+      height: 32px;
+      opacity: 0.6;
+    }
+
+    .threat-tactical-banner {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .threat-state-pill {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: var(--r-pill);
+      background: var(--green-soft);
+      color: var(--green-text);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.4px;
+    }
+
+    .threat-state-pill.yellow {
+      background: var(--orange-soft);
+      color: var(--orange);
+    }
+
+    .threat-state-pill.red {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .threat-tactical-desc {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.4;
+      max-width: 340px;
+    }
+
+    /* Key Tactical Metrics Row */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .metric-cell {
+      background: var(--surface);
+      border-radius: var(--r-tile);
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-cell-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-cell-val {
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text);
+    }
+
+    /* School Card (Лицей «Гармония») */
+    .card-header-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .card-subaction {
+      font-size: 12px;
+      color: var(--blue);
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .school-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .school-crest {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--surface);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      border: 1px solid var(--fill-2);
+      color: var(--text);
+    }
+
+    .school-text-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .school-status-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .school-status-title.remote {
+      color: var(--red);
+    }
+
+    .school-status-desc {
+      font-size: 12.5px;
+      color: var(--text-2);
+      line-height: 1.4;
+    }
+
+    .chips-line {
+      display: flex;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--fill-1);
+    }
+
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface);
+      border-radius: var(--r-pill);
+      padding: 4px 10px;
+      font-size: 11.5px;
+      color: var(--text-2);
+    }
+
+    .chip-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    /* Attendance Buttons */
+    .att-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .att-btn {
+      height: 40px;
+      border: 0;
+      border-radius: var(--r-row);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .att-btn:active {
+      background: var(--inverse);
+      color: var(--on-inverse);
+      transform: scale(0.97);
+    }
+
+    /* Feed List */
+    .feed-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 440px;
+      overflow-y: auto;
+    }
+
+    .feed-item {
+      background: var(--surface);
+      border-radius: var(--r-row);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    .feed-channel {
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    .feed-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .feed-footer {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Environmental & Grid */
+    .env-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .env-card {
+      background: var(--surface);
+      border-radius: var(--r-row);
+      padding: 12px;
+      border: 1px solid var(--fill-2);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .env-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .env-main {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .env-sub {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    /* Quick Attendance Switcher */
+    .quick-att-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .quick-att-btn {
+      height: 38px;
+      border: 1px solid var(--fill-2);
+      border-radius: var(--r-row);
+      background: var(--surface);
+      color: var(--text-2);
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-att-btn.active {
+      background: var(--inverse);
+      color: var(--on-inverse);
+      border-color: var(--inverse);
+    }
+
+    /* NEPTUN.IN.UA MAPLIBRE RADAR STYLES */
+    .tactical-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      border-radius: var(--r-card);
+      overflow: hidden;
+      background: #0b1319;
+      border: 1px solid var(--line);
+    }
+
+    #neptunMap {
+      width: 100%;
+      height: 100%;
+    }
+
+    .maplibregl-canvas {
+      outline: none;
+    }
+
+    /* Home marker */
+    .neptun-home-marker {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .neptun-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .neptun-pulse-ring {
+      position: absolute;
+      top: -5px;
+      left: 0px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid var(--green);
+      animation: neptunPulse 2s infinite ease-out;
+    }
+
+    @keyframes neptunPulse {
+      0% {
+        transform: scale(0.5);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(2.2);
+        opacity: 0;
+      }
+    }
+
+    .neptun-home-label {
+      margin-top: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #ffffff;
+      background: rgba(11, 31, 28, 0.9);
+      border: 1px solid var(--green);
+      border-radius: 4px;
+      padding: 2px 6px;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
+
+    /* Drone target marker */
+    .neptun-drone-marker {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .drone-svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--red);
+      filter: drop-shadow(0 0 6px rgba(255, 90, 95, 0.8));
+      transition: transform 0.2s;
+    }
+
+    .drone-pulse-circle {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1.5px solid var(--red);
+      animation: dronePulse 1.6s infinite ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes dronePulse {
+      0% {
+        transform: scale(0.6);
+        opacity: 0.9;
+      }
+
+      100% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+    }
+
+    .drone-tag {
+      position: absolute;
+      left: 28px;
+      top: -4px;
+      background: rgba(20, 24, 29, 0.92);
+      border: 1px solid var(--red);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      color: #fff;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .drone-tag b {
+      color: var(--red);
+      font-size: 10px;
+    }
+
+    .drone-tag span {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 9px;
+    }
+
+    /* Tactical Vector Map styles */
+    .map-hud-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 0.4;
+        transform: scale(0.9);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
+
+      100% {
+        opacity: 0.4;
+        transform: scale(0.9);
+      }
+    }
+
+    .map-layer-toggles {
+      display: flex;
+      gap: 6px;
+    }
+
+    .map-chip-btn {
+      font-size: 11px;
+      padding: 5px 11px;
+      border-radius: var(--r-pill);
+      border: 1px solid var(--fill-2);
+      background: var(--surface);
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .map-chip-btn.active {
+      background: var(--fill-3);
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    .tactical-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      border-radius: var(--r-card);
+      overflow: hidden;
+      background: #05080c;
+      border: 1px solid var(--line);
+    }
+
+    .tactical-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .target-popup-card {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      background: rgba(23, 23, 23, 0.94);
+      border: 1px solid var(--line);
+      border-radius: var(--r-row);
+      padding: 10px 14px;
+      backdrop-filter: blur(12px);
+      z-index: 5;
+    }
+
+    .map-legend-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .legend-tag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    .legend-color {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .legend-color.ppo {
+      background: var(--green);
+    }
+
+    .legend-color.odesa {
+      background: var(--orange);
+    }
+
+    .legend-color.approach {
+      background: var(--red);
+    }
+
+    /* Thinking Sphere WebGL Canvas (DesignBookmark) */
+    .sphere-card {
+      position: relative;
+      width: 100%;
+      height: 190px;
+      border-radius: var(--r-card);
+      overflow: hidden;
+      background: #000;
+      border: 1px solid var(--line);
+    }
+
+    .sphere-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .sphere-canvas:active {
+      cursor: grabbing;
+    }
+
+    .sphere-badge {
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      z-index: 3;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-2);
+      background: rgba(255, 255, 255, .08);
+      border-radius: var(--r-pill);
+      padding: 4px 10px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sphere-tip {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    /* AI Copilot Stream */
+    .chat-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+
+    .chat-bubble {
+      padding: 12px 14px;
+      border-radius: var(--r-card);
+      font-size: 13.5px;
+      line-height: 1.45;
+      max-width: 90%;
+    }
+
+    .chat-bubble.bot {
+      background: var(--surface);
+      color: var(--text);
+      align-self: flex-start;
+      border: 1px solid var(--line);
+    }
+
+    .chat-bubble.user {
+      background: var(--inverse);
+      color: var(--on-inverse);
+      font-weight: 500;
+      align-self: flex-end;
+    }
+
+    /* Kokonut UI AI Loading State */
+    .ai-loading-box {
+      background: var(--surface);
+      border-radius: var(--r-row);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      border: 1px solid var(--fill-3);
+    }
+
+    .ai-loading-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .ai-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--fill-3);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .ai-step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-left: 6px;
+    }
+
+    .ai-step-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    .ai-step-item.active {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .ai-step-item.done {
+      color: var(--text-2);
+    }
+
+    .ai-step-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .prompt-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .p-pill {
+      font-size: 11.5px;
+      padding: 6px 12px;
+      border-radius: var(--r-pill);
+      background: var(--surface);
+      border: 1px solid var(--fill-2);
+      color: var(--text-2);
+      cursor: pointer;
+    }
+
+    .p-pill:active {
+      background: var(--fill-3);
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .chat-field {
+      flex: 1;
+      height: 42px;
+      border-radius: var(--r-row);
+      background: var(--surface);
+      border: 1px solid var(--fill-2);
+      padding: 0 14px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .chat-field:focus {
+      border-color: var(--line);
+    }
+
+    .chat-send-btn {
+      height: 42px;
+      padding: 0 16px;
+      border-radius: var(--r-row);
+      background: var(--inverse);
+      color: var(--on-inverse);
+      font-weight: 700;
+      font-size: 13px;
+      border: 0;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       BOTTOM BAR (DesignBookmark Motion Studies)
+       ========================================================================== */
+    .bar-wrap {
+      position: fixed;
+      bottom: 16px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .bar {
+      pointer-events: auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      border-radius: 26px;
+      background: rgba(38, 38, 38, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--fill-2);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+    }
+
+    .it {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      height: 44px;
+      padding: 0 9px;
+      border: 0;
+      border-radius: var(--r-pill);
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      font: inherit;
+      overflow: hidden;
+      transition: color .25s;
+    }
+
+    .it[aria-selected="true"] {
+      color: var(--text);
+    }
+
+    .it svg {
+      width: 22px;
+      height: 22px;
+      flex: none;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      will-change: transform;
+    }
+
+    .nm {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 14px;
+      font-weight: 500;
+      width: 0;
+      opacity: 0;
+    }
+
+    .hl {
+      position: absolute;
+      left: 0;
+      top: 8px;
+      height: 44px;
+      border-radius: var(--r-pill);
+      background: var(--fill-3);
+      will-change: transform, width;
+      pointer-events: none;
+    }
+
+    /* Views */
+    .tab-view {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .tab-view.active {
+      display: flex;
+    }
+
+    /* ==========================================================================
+       ONBOARDING MODAL with Step Progress & Toggle Switch (DesignBookmark)
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.86);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 200;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Step Progress Component */
+    .step-track-box {
+      width: 100%;
+      padding: 0 8px;
+    }
+
+    .step-track {
+      position: relative;
+      height: 32px;
+      margin: 0 14px;
+    }
+
+    .step-track::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 14px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--fill-3);
+    }
+
+    .step-bar {
+      position: absolute;
+      left: 0;
+      top: 14px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--green);
+      will-change: width;
+      transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .step-dots {
+      position: absolute;
+      inset: 0;
+    }
+
+    .step-dot {
+      position: absolute;
+      top: 0;
+      width: 32px;
+      height: 32px;
+      margin-left: -16px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+
+    .step-dot.done {
+      background: var(--green);
+      color: #04140a;
+    }
+
+    .step-dot.active {
+      background: var(--inverse);
+      color: var(--on-inverse);
+    }
+
+    .step-names {
+      position: relative;
+      height: 18px;
+      margin: 8px 14px 0;
+    }
+
+    .step-names span {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: color .3s;
+    }
+
+    .step-names span.on {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* District Selection Cards */
+    .district-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .district-opt {
+      background: var(--surface);
+      border: 1px solid var(--fill-2);
+      border-radius: var(--r-row);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+
+    .district-opt.selected {
+      border-color: var(--green);
+      background: var(--fill-2);
+    }
+
+    .district-opt b {
+      font-size: 13.5px;
+      color: var(--text);
+      display: block;
+    }
+
+    .district-opt span {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 2px;
+      display: block;
+    }
+
+    .district-radio {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--muted);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .district-opt.selected .district-radio {
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    /* Toggle Switch Row */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+    }
+
+    .toggle-row b {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+      display: block;
+    }
+
+    .toggle-row span {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 2px;
+      display: block;
+    }
+
+    .sw {
+      position: relative;
+      width: 50px;
+      height: 30px;
+      border: 0;
+      border-radius: 15px;
+      background: var(--fill-3);
+      cursor: pointer;
+      padding: 0;
+      transition: background .2s;
+    }
+
+    .sw[aria-checked="true"] {
+      background: var(--green);
+    }
+
+    .sw i {
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      height: 24px;
+      width: 24px;
+      border-radius: 12px;
+      background: #fff;
+      transition: transform .25s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .sw[aria-checked="true"] i {
+      transform: translateX(20px);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      height: 44px;
+      border: 0;
+      border-radius: var(--r-row);
+      background: var(--fill-2);
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      flex: 2;
+      height: 44px;
+      border: 0;
+      border-radius: var(--r-row);
+      background: var(--inverse);
+      color: var(--on-inverse);
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Install Sheet / Modal */
+    .install-box {
+      background: var(--surface);
+      border-radius: var(--r-row);
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-2);
+    }
+
+    .install-box ol {
+      padding-left: 18px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================= ONBOARDING & SETUP MODAL ================= -->
+  <div id="onboardModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="step-track-box">
+        <div class="step-track">
+          <span class="step-bar" id="stepBar" style="width: 0%;"></span>
+          <div class="step-dots" id="stepDots">
+            <span class="step-dot active" style="left: 0%;">1</span>
+            <span class="step-dot" style="left: 33.3%;">2</span>
+            <span class="step-dot" style="left: 66.6%;">3</span>
+            <span class="step-dot" style="left: 100%;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div class="step-names" id="stepNames">
+          <span style="left: 0%;" class="on">Имя</span>
+          <span style="left: 33.3%;">Район</span>
+          <span style="left: 66.6%;">Опции</span>
+          <span style="left: 100%;">Готово</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Имя -->
+      <div id="step-1" class="step-content">
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Как к вам обращаться?</div>
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 14px;">Персональный тактический радар Одессы.
+        </div>
+        <input type="text" id="inputName" class="chat-field" value="Денис"
+          style="width: 100%; height: 46px; font-size: 15px; font-weight: 600;">
+      </div>
+
+      <!-- Step 2: Район Одессы -->
+      <div id="step-2" class="step-content" style="display: none;">
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Ваш район Одессы</div>
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 14px;">Радиус расчёта и школа будут настроены
+          под сектор.</div>
+        <div class="district-options">
+          <div class="district-opt selected" data-district="odesa_tairovo" data-title="Таирова · Гармония"
+            data-desc="Киевский район / Лицей «Гармония»">
+            <div>
+              <b>Киевский район (Таирова · Гармония)</b>
+              <span>Лицей «Гармония», Королёва / Люстдорфская</span>
+            </div>
+            <div class="district-radio"></div>
+          </div>
+          <div class="district-opt" data-district="odesa_district" data-title="Приморский район"
+            data-desc="Центр / Фонтан / Аркадия">
+            <div>
+              <b>Приморский район</b>
+              <span>Центр, Аркадия, Фонтан</span>
+            </div>
+            <div class="district-radio"></div>
+          </div>
+          <div class="district-opt" data-district="odesa_district" data-title="Хаджибейский район"
+            data-desc="Черёмушки / Малиновский">
+            <div>
+              <b>Хаджибейский / Черёмушки</b>
+              <span>Малиновский сектор, Застава</span>
+            </div>
+            <div class="district-radio"></div>
+          </div>
+          <div class="district-opt" data-district="odesa_district" data-title="Пересыпский район"
+            data-desc="Посёлок Котовского">
+            <div>
+              <b>Пересыпский / Поскот</b>
+              <span>Северный сектор Одессы</span>
+            </div>
+            <div class="district-radio"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Опции и тумблеры -->
+      <div id="step-3" class="step-content" style="display: none;">
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Уведомления и радары</div>
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 14px;">Настройте оповещения под свой сектор.
+        </div>
+        <div>
+          <div class="toggle-row">
+            <div>
+              <b>Алерты при росте шанса</b>
+              <span>Звуковой сигнал при угрозе > 60%</span>
+            </div>
+            <button class="sw" id="swAlarm" role="switch" aria-checked="true"><i></i></button>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <b>Статус Лицея «Гармония»</b>
+              <span>Оповещения об очном/дистанционном обучении</span>
+            </div>
+            <button class="sw" id="swSchool" role="switch" aria-checked="true"><i></i></button>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <b>Самообучение модели</b>
+              <span>Калибровка каналов по вашим отметкам</span>
+            </div>
+            <button class="sw" id="swLearn" role="switch" aria-checked="true"><i></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Готово -->
+      <div id="step-4" class="step-content" style="display: none; text-align: center; padding: 10px 0;">
+        <div
+          style="display: inline-flex; width: 48px; height: 48px; border-radius: 50%; background: var(--green-soft); color: var(--green); align-items: center; justify-content: center; margin-bottom: 12px;">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <div style="font-size: 19px; font-weight: 700; margin-bottom: 6px;">Сектор настроен</div>
+        <div style="font-size: 13px; color: var(--text-2); line-height: 1.45;">
+          Сектор: <b id="summaryDistrict" style="color: var(--green);">Таирова · Лицей «Гармония»</b>.<br>
+          Телеметрия 17 каналов подключена в прямом эфире.
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button id="stepBackBtn" class="btn-secondary" style="display: none;">Назад</button>
+        <button id="stepNextBtn" class="btn-primary">Далее</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= INSTALL PWA MODAL ================= -->
+  <div id="installModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="font-size: 18px; font-weight: 700;">Установка на телефон</div>
+      <div class="install-box">
+        <b>[iOS / Safari]</b>
+        <ol>
+          <li>Нажмите кнопку <b>«Поделиться»</b> (квадрат со стрелкой вверх внизу).</li>
+          <li>Выберите пункт <b>«На экран "Домой"»</b> (Add to Home Screen).</li>
+          <li>Готово! Приложение появится на рабочем столе без рамок браузера.</li>
+        </ol>
+        <br>
+        <b>[Android / Chrome]</b>
+        <ol>
+          <li>Нажмите три точки в правом верхнем углу.</li>
+          <li>Выберите <b>«Установить приложение»</b>.</li>
+        </ol>
+      </div>
+      <button class="btn-primary" onclick="closeInstallModal()">Понятно</button>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP SHELL ================= -->
+  <div class="app-shell">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="location-badge" onclick="openDistrictSelect()">
+        <span class="location-dot"></span>
+        <div style="display: flex; flex-direction: column;">
+          <span id="activeDistrictBadge" class="location-text">Таирова · Лицей «Гармония»</span>
+          <span class="location-sub"><span id="userGreetingName">Денис</span> · Сменить сектор ▾</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="action-pill" onclick="triggerTestSimulation()" title="Проверить интерфейс во время тревоги">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg>
+          <span id="testBtnLabel">Тест</span>
+        </div>
+        <div class="action-pill" onclick="openInstallModal()">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>Телефон</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 1: РАДАР (СТАТУС И ШАНС) ================= -->
+    <div id="tab-radar" class="tab-view active">
+      <!-- SmoothUI Exposure Slider Hero -->
+      <div class="motion-card threat-hero">
+        <div class="stream-live-pill">
+          <span class="live-blink-dot"></span>
+          <span>17 КАНАЛОВ ОНЛАЙН · НЕБО ЧИСТОЕ (0%)</span>
+        </div>
+        <div class="progress-circle-wrap">
+          <svg class="progress-circle-svg" viewBox="0 0 100 100">
+            <circle class="circle-bg" cx="50" cy="50" r="44" />
+            <circle id="progressArc" class="circle-val" cx="50" cy="50" r="44" />
+          </svg>
+          <div class="circle-inner-label">
+            <span id="probPercentDisplay" class="prob-num">0</span>
+            <span class="prob-caption">Шанс тревоги</span>
+          </div>
+        </div>
+
+        <!-- SmoothUI Ticker Notch Marks -->
+        <div class="ticker-container">
+          <div class="ticker-track" id="tickerNotches">
+            <!-- Dynamically populated notches -->
+          </div>
+        </div>
+
+        <!-- Tactical Banner -->
+        <div class="threat-tactical-banner">
+          <div id="threatStatePill" class="threat-state-pill">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="3" fill="currentColor" />
+            </svg>
+            <span>ВОЗДУШНЫЙ ПРОСТОР ЧИСТЫЙ</span>
+          </div>
+          <div id="threatTacticalDesc" class="threat-tactical-desc">
+            Активных воздушных целей по вектору сектора Таирова не зафиксировано (Шанс 0%). 17 каналов подключены.
+            Нажмите кнопку «Тест» наверху для симуляции налёта.
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Tactical Metrics -->
+      <div class="metrics-row">
+        <div class="metric-cell">
+          <span class="metric-cell-label">Подлёт к сектору</span>
+          <span id="valEta" class="metric-cell-val">—</span>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-cell-label">Цели в воздухе</span>
+          <span id="valCount" class="metric-cell-val">0</span>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-cell-label">Главная цель</span>
+          <span id="valType" class="metric-cell-val" style="font-size: 13px;">Чисто</span>
+        </div>
+      </div>
+
+      <!-- Environmental Criteria & Grid -->
+      <div class="env-row">
+        <div class="env-card">
+          <div class="env-header">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />
+            </svg>
+            <span>Ветер и курс БпЛА</span>
+          </div>
+          <div class="env-main">С-В 6 м/с (22 км/ч)</div>
+          <div class="env-sub">Встречный с моря (+3 мин к подлёту). Облачность 280м.</div>
+        </div>
+        <div class="env-card">
+          <div class="env-header">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            <span>Энергосеть (ДТЭК)</span>
+          </div>
+          <div class="env-main">1 группа · СВЕТ ЕСТЬ</div>
+          <div class="env-sub">Королёва / Таирова стабильно. Сирены и вышки запитаны.</div>
+        </div>
+      </div>
+
+      <!-- Quick Attendance Switcher -->
+      <div class="motion-card" style="padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            Лицей «Гармония» · Ваш статус
+          </span>
+          <span id="currentStatusBadge" style="font-size: 11.5px; color: var(--green); font-weight: 700;">Очно</span>
+        </div>
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 10px;">
+          Случайно выбрали не то? Переключите в 1 тап — статус для расчётов сразу обновится:
+        </div>
+        <div class="quick-att-row">
+          <button class="quick-att-btn active" id="btnAttInPerson" onclick="setQuickAttendance('IN_PERSON', this)"><svg
+              viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+              style="display:inline-block;vertical-align:middle;margin-right:4px;">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>Очно</button>
+          <button class="quick-att-btn" id="btnAttRemote" onclick="setQuickAttendance('REMOTE_OFFICIAL', this)"><svg
+              viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+              style="display:inline-block;vertical-align:middle;margin-right:4px;">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>Дистант</button>
+          <button class="quick-att-btn" id="btnAttMissed" onclick="setQuickAttendance('MISSED_ALARM', this)"><svg
+              viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+              style="display:inline-block;vertical-align:middle;margin-right:4px;">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>Тревога</button>
+        </div>
+      </div>
+
+      <!-- School Card (Одеський ліцей «Гармонія») -->
+      <div class="motion-card">
+        <div class="card-header-line">
+          <span class="card-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+            </svg>
+            Одеський ліцей «Гармонія»
+          </span>
+          <span class="card-subaction" onclick="switchTab(1)">Обучение →</span>
+        </div>
+
+        <div class="school-row">
+          <div class="school-crest">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+          </div>
+          <div class="school-text-wrap">
+            <div id="schoolMainStatus" class="school-status-title">Очное обучение</div>
+            <div id="schoolDescText" class="school-status-desc">
+              Занятия по стандартному графику. Распоряжений об отмене очных уроков не публиковалось.
+            </div>
+          </div>
+        </div>
+
+        <div class="chips-line">
+          <div class="status-chip">
+            <span class="chip-dot"></span>
+            <span>Электросеть стабильна</span>
+          </div>
+          <div class="status-chip">
+            <span class="chip-dot"></span>
+            <span>Транспорт (трамвай 7, 26)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: КАРТА (НЕПТУН РАДАР ОДЕССЫ) ================= -->
+    <div id="tab-map" class="tab-view">
+      <div class="motion-card" style="padding: 12px; position: relative;">
+        <div class="map-hud-header">
+          <div style="display: flex; flex-direction: column;">
+            <div
+              style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+              <span class="pulse-dot"></span>
+              <span>РАДАР НЕПТУН · СЕКТОР ТАИРОВА</span>
+            </div>
+            <span style="font-size: 11px; color: var(--muted); font-family: var(--font-mono);">46.3906° N, 30.7090° E ·
+              ТАИРОВА / ГАРМОНИЯ</span>
+          </div>
+          <div class="map-layer-toggles">
+            <button id="btnMapCenter" class="map-chip-btn" onclick="centerTacticalMap()">Таирова</button>
+            <button id="btnMapTest" class="map-chip-btn active" onclick="toggleMapSimulation()">Симуляция</button>
+          </div>
+        </div>
+
+        <!-- Real MapLibre GL Container (OpenFreeMap Dark Vector Tiles as in neptun.in.ua) -->
+        <div class="tactical-canvas-wrap">
+          <div id="neptunMap"></div>
+
+          <!-- Interactive Target Details Card -->
+          <div id="targetDetailCard" class="target-popup-card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <b id="targetPopupId" style="color: var(--red); font-size: 12px; font-family: var(--font-mono);">#SH-401 ·
+                Shahed-136</b>
+              <span id="targetPopupEta" style="font-size: 11px; color: var(--orange); font-weight: 700;">Подлёт ~9
+                мин</span>
+            </div>
+            <div id="targetPopupDesc" style="font-size: 11.5px; color: var(--text-2);">Курс 332° (Чёрное море →
+              Черноморск / Таирова), Скорость 185 км/ч, Высота 140м</div>
+          </div>
+        </div>
+
+        <!-- Tactical Range Legend -->
+        <div class="map-legend-row">
+          <span class="legend-tag"><span class="legend-color ppo"></span> 10 км (МВГ ППО)</span>
+          <span class="legend-tag"><span class="legend-color odesa"></span> 30 км (Одесса / Черноморск)</span>
+          <span class="legend-tag"><span class="legend-color approach"></span> 60 км (Рубеж подлёта)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: ШКОЛА & ОБУЧЕНИЕ МОДЕЛИ ================= -->
+    <div id="tab-school" class="tab-view">
+      <div class="motion-card">
+        <div class="card-header-line">
+          <span class="card-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            Официальный приказ образования
+          </span>
+          <span style="font-size: 11px; color: var(--muted); font-family: var(--font-mono);">ОДЕССА</span>
+        </div>
+        <div id="schoolQuoteBox" style="font-size: 13.5px; color: var(--text-2); line-height: 1.5; font-style: italic;">
+          «Усі заклади освіти Одеси працюють у стандартному очному режимі. Сховища та укриття забезпечені.»
+        </div>
+      </div>
+
+      <div class="motion-card">
+        <div class="card-header-line">
+          <span class="card-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            Формат посещения лицея
+          </span>
+          <span style="font-size: 11px; color: var(--green);">САМООБУЧЕНИЕ</span>
+        </div>
+        <div style="font-size: 12.5px; color: var(--text-2); line-height: 1.4;">
+          Если вы случайно отметили не тот статус — просто нажмите нужный вариант ниже, запись для сегодняшнего дня
+          моментально перезапишется.
+        </div>
+        <div class="att-buttons">
+          <button class="att-btn" onclick="submitAttendance('IN_PERSON')">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+            Очно
+          </button>
+          <button class="att-btn" onclick="submitAttendance('REMOTE_OFFICIAL')">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+            Дистант
+          </button>
+          <button class="att-btn" onclick="submitAttendance('MISSED_ALARM')">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            Тревога
+          </button>
+        </div>
+        <div id="attFeedback" style="font-size: 12px; color: var(--green); min-height: 16px; font-weight: 600;"></div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 3: ЭФИР (17 КАНАЛОВ) ================= -->
+    <div id="tab-feed" class="tab-view">
+      <div class="motion-card" style="padding: 16px;">
+        <div class="card-header-line" style="margin-bottom: 6px;">
+          <span class="card-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="2" />
+              <path
+                d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+            </svg>
+            Прямой эфир радаров
+          </span>
+          <span style="font-size: 11px; color: var(--muted); font-family: var(--font-mono);">17 КАНАЛОВ</span>
+        </div>
+        <div id="feedStream" class="feed-container">
+          <div style="font-size: 13px; color: var(--muted); text-align: center; padding: 24px;">Загрузка сообщений...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 4: ИИ КОПИЛОТ (ЧАТ & THINKING SPHERE) ================= -->
+    <div id="tab-ai" class="tab-view">
+      <!-- WebGL2 Thinking Sphere Canvas (DesignBookmark exact implementation) -->
+      <div class="sphere-card">
+        <canvas class="sphere-canvas" id="sphere" tabindex="0" role="button" aria-label="Thinking sphere"></canvas>
+        <div class="sphere-badge">
+          <span
+            style="width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block;"></span>
+          <span>OpenRouter · GPT Engine</span>
+        </div>
+        <span class="sphere-tip">Кликни или крути сферу</span>
+      </div>
+
+      <div class="motion-card">
+        <div class="card-header-line">
+          <span class="card-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Тактический ассистент
+          </span>
+          <span style="font-size: 11px; color: var(--green); font-family: var(--font-mono);">ONLINE</span>
+        </div>
+
+        <div id="chatMessages" class="chat-stream">
+          <div class="chat-bubble bot">
+            Привет, <span id="chatUserName">Денис</span>! Я анализирую оперативную телеметрию сектора Таирова и Лицея
+            «Гармония». Задайте вопрос по воздушной обстановке или урокам.
+          </div>
+        </div>
+
+        <!-- Kokonut UI Loading State -->
+        <div id="aiLoadingContainer" style="display: none;">
+          <div class="ai-loading-box">
+            <div class="ai-loading-header">
+              <div class="ai-spinner"></div>
+              <span>Анализ тактической обстановки через OpenRouter...</span>
+            </div>
+            <div class="ai-step-list">
+              <div class="ai-step-item done"><span class="ai-step-dot"></span>Сбор сигналов из 17 каналов</div>
+              <div class="ai-step-item active"><span class="ai-step-dot"></span>Расчёт дистанции до сектора Таирова
+              </div>
+              <div class="ai-step-item"><span class="ai-step-dot"></span>Сверка со статусом Лицея «Гармония»</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="prompt-pills">
+          <span class="p-pill" onclick="quickAsk('Что сейчас летит в сторону Одессы?')">Что сейчас летит?</span>
+          <span class="p-pill" onclick="quickAsk('Будет ли завтра дистанционка в Гармонии?')">Дистанционка
+            завтра?</span>
+          <span class="p-pill" onclick="quickAsk('Какой шанс тревоги сегодня ночью?')">Шанс ночью?</span>
+        </div>
+
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" class="chat-field" placeholder="Спросить у тактического ассистента...">
+          <button id="chatSendBtn" class="chat-send-btn">Отправить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= BOTTOM BAR (DesignBookmark Motion Studies) ================= -->
+  <div class="bar-wrap">
+    <nav class="bar" id="mainBar" role="tablist" aria-label="Main">
+      <span class="hl" id="hl"></span>
+      <button class="it" role="tab" aria-selected="true" aria-label="Радар">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 3" />
+        </svg>
+        <span class="nm">Радар</span>
+      </button>
+      <button class="it" role="tab" aria-selected="false" aria-label="Карта">
+        <svg viewBox="0 0 24 24">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+          <line x1="8" y1="2" x2="8" y2="18" />
+          <line x1="16" y1="6" x2="16" y2="22" />
+        </svg>
+        <span class="nm">Карта</span>
+      </button>
+      <button class="it" role="tab" aria-selected="false" aria-label="Школа">
+        <svg viewBox="0 0 24 24">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+          <path d="M6 12v5c3 3 9 3 12 0v-5" />
+        </svg>
+        <span class="nm">Школа</span>
+      </button>
+      <button class="it" role="tab" aria-selected="false" aria-label="Эфир">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16" />
+          <circle cx="5" cy="19" r="1" />
+        </svg>
+        <span class="nm">Эфир</span>
+      </button>
+      <button class="it" role="tab" aria-selected="false" aria-label="Копилот">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <span class="nm">Копилот</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       SPRING ENGINE (DesignBookmark shared engine)
+       ========================================================================== */
+    window.Motion = (() => {
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const S = (x, k = 400, c = 30) => ({ x, v: x, k, c });
+      const step = (s, dt) => {
+        const a = -s.k * (s.x - s.t) - s.c * s.v;
+        s.v += a * dt;
+        s.x += s.v * dt;
+      };
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+      const comps = [];
+      let last = performance.now();
+      function loop(now) {
+        const dt = Math.min((now - last) / 1000, 1 / 30);
+        last = now;
+        comps.forEach(c => c.frame && c.frame(dt));
+        comps.forEach(c => c.render && c.render());
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+
+      return { S, step, clamp, register: c => comps.push(c) };
+    })();
+
+    /* ==========================================================================
+       APPLICATION STATE & PERSISTENCE
+       ========================================================================== */
+    let currentDistrict = localStorage.getItem('cta_district') || 'odesa_tairovo';
+    let currentDistrictTitle = localStorage.getItem('cta_district_title') || 'Таирова · Гармония';
+    let userName = localStorage.getItem('cta_name') || 'Денис';
+    let onboarded = localStorage.getItem('cta_onboarded') === 'true';
+    let isTestMode = false;
+
+    function updateLocationUI() {
+      document.getElementById('activeDistrictBadge').textContent = currentDistrictTitle;
+      document.getElementById('userGreetingName').textContent = userName;
+      document.getElementById('chatUserName').textContent = userName;
+    }
+    updateLocationUI();
+
+    /* ==========================================================================
+       BOTTOM BAR (DesignBookmark exact implementation)
+       ========================================================================== */
+    const { S, step, clamp } = Motion;
+    const barEl = document.getElementById('mainBar');
+    const hlEl = document.getElementById('hl');
+    const tabButtons = [...barEl.querySelectorAll('.it')];
+    const tabViews = ['tab-radar', 'tab-map', 'tab-school', 'tab-feed', 'tab-ai'].map(id => document.getElementById(id));
+
+    const tabsData = tabButtons.map(el => {
+      const nm = el.querySelector('.nm');
+      nm.style.width = 'auto';
+      const full = nm.offsetWidth + 8;
+      nm.style.width = '0px';
+      return { el, nm, svg: el.querySelector('svg'), full, w: S(0, 300, 26), p: S(1, 520, 14) };
+    });
+
+    const X = S(0, 340, 28), W = S(0, 340, 28);
+    let curTab = 0;
+    let firstBarFrame = true;
+
+    function switchTab(idx) {
+      curTab = idx;
+      tabButtons.forEach((b, k) => {
+        b.setAttribute('aria-selected', k === idx);
+        tabsData[k].w.t = k === idx ? tabsData[k].full : 0;
+      });
+      tabsData[idx].p.x = 0.72;
+      tabsData[idx].p.v = 6;
+
+      tabViews.forEach((v, k) => {
+        v.classList.toggle('active', k === idx);
+      });
+
+      if (idx === 1 && window.triggerMapResize) {
+        requestAnimationFrame(() => window.triggerMapResize());
+      }
+      if (idx === 3) loadFeed();
+      if (idx === 4 && window.triggerSphereResize) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => window.triggerSphereResize());
+        });
+      }
+    }
+
+    tabButtons.forEach((btn, i) => {
+      btn.addEventListener('click', () => switchTab(i));
+    });
+    switchTab(0);
+
+    Motion.register({
+      frame(dt) {
+        tabsData.forEach(t => { step(t.w, dt); step(t.p, dt); });
+        const activeBtn = tabsData[curTab].el;
+        X.t = activeBtn.offsetLeft;
+        W.t = activeBtn.offsetWidth;
+        if (firstBarFrame) { X.x = X.t; W.x = W.t; firstBarFrame = false; }
+        step(X, dt);
+        step(W, dt);
+      },
+      render() {
+        tabsData.forEach(t => {
+          const w = Math.max(0, t.w.x);
+          t.nm.style.width = w.toFixed(2) + 'px';
+          t.nm.style.paddingLeft = clamp(w / t.full, 0, 1) * 8 + 'px';
+          t.nm.style.opacity = clamp(w / t.full * 1.4 - .4, 0, 1).toFixed(3);
+          t.svg.style.transform = `scale(${t.p.x.toFixed(4)})`;
+        });
+        hlEl.style.transform = `translateX(${X.x.toFixed(2)}px)`;
+        hlEl.style.width = W.x.toFixed(2) + 'px';
+      }
+    });
+
+    /* ==========================================================================
+       SMOOTHUI EXPOSURE SLIDER / TICKER NOTCHES
+       ========================================================================== */
+    const tickerContainer = document.getElementById('tickerNotches');
+    const TOTAL_NOTCHES = 25;
+    for (let i = 0; i < TOTAL_NOTCHES; i++) {
+      const n = document.createElement('div');
+      n.className = 'notch' + (i === 12 ? ' active' : (i === 11 || i === 13 ? ' near' : ''));
+      tickerContainer.appendChild(n);
+    }
+
+    function updateThreatDisplay(d) {
+      if (isTestMode) return;
+      const p = Math.round(d.probability_percent || 0);
+      renderProbability(p, d.alert_level || 'GREEN', d.estimated_time_to_impact_minutes, d.active_threat_count, d.primary_threat_type, d.summary);
+    }
+
+    function renderProbability(p, lvl, eta, count, type, summary) {
+      document.getElementById('probPercentDisplay').textContent = p;
+
+      const circ = 276.46;
+      const offset = circ - (p / 100) * circ;
+      const arc = document.getElementById('progressArc');
+      arc.style.strokeDashoffset = offset;
+
+      const pill = document.getElementById('threatStatePill');
+
+      if (lvl === 'RED' || p >= 65) {
+        arc.style.stroke = 'var(--red)';
+        pill.className = 'threat-state-pill red';
+        pill.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>ОПАСНОСТЬ · ТАКТИЧЕСКАЯ УГРОЗА</span>';
+      } else if (lvl === 'ORANGE' || lvl === 'YELLOW' || p >= 25) {
+        arc.style.stroke = 'var(--orange)';
+        pill.className = 'threat-state-pill yellow';
+        pill.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><span>ВНИМАНИЕ · ПОВЫШЕННАЯ ГОТОВНОСТЬ</span>';
+      } else {
+        arc.style.stroke = 'var(--green)';
+        pill.className = 'threat-state-pill';
+        pill.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><span>ВОЗДУШНЫЙ ПРОСТОР ЧИСТЫЙ</span>';
+      }
+
+      document.getElementById('valEta').textContent = eta ? `~${eta} мин` : '—';
+      document.getElementById('valCount').textContent = count !== undefined ? count : 0;
+      document.getElementById('valType').textContent = type || 'Чисто';
+      document.getElementById('threatTacticalDesc').textContent = summary || 'Активных воздушных целей по вектору сектора Таирова не зафиксировано.';
+    }
+
+    function triggerTestSimulation() {
+      isTestMode = !isTestMode;
+      const btn = document.getElementById('testBtnLabel');
+      if (isTestMode) {
+        btn.textContent = 'Сброс';
+        renderProbability(78, 'RED', 12, 3, 'БпЛА «Шахед»', '[ВНИМАНИЕ] 3 БпЛА типа «Шахед» зафиксированы на курсе через Черноморск в сторону Таирова.');
+      } else {
+        btn.textContent = 'Тест';
+        loadTelemetry();
+      }
+    }
+
+    /* ==========================================================================
+       DATA POLLING & WEBSOCKET
+       ========================================================================== */
+    async function loadTelemetry() {
+      try {
+        const res = await fetch(`/api/v1/probability?preset=${currentDistrict}`);
+        if (res.ok) updateThreatDisplay(await res.json());
+      } catch (e) {}
+
+      try {
+        const sRes = await fetch('/api/v1/school/status');
+        if (sRes.ok) {
+          const s = await sRes.json();
+          const title = document.getElementById('schoolMainStatus');
+          const desc = document.getElementById('schoolDescText');
+          const quote = document.getElementById('schoolQuoteBox');
+
+          if (s.is_remote) {
+            title.className = 'school-status-title remote';
+            title.textContent = 'Дистанционный фор мат';
+            desc.textContent = s.headline;
+            quote.textContent = s.official_quote || '«Офіційне рішення щодо дистанційного формату навчання.»';
+          } else {
+            tit le.className = 'school-status-title';
+            title.textContent = 'Очное обучение';
+            desc.textContent = 'Школы Одессы работают по обычному расписанию.';
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function loadFeed() {
+      try {
+        const res = await fetch('/api/v1/threats/history?limit=15');
+        if (res.ok) {
+          const data = await res.json();
+          const stream = documen t.getElementById('feedStream');
+          if (data.items && data.items.length > 0) {
+            stream.innerHTML = data.items.map(item => `
+              <div class="feed-item">
+                <div class="feed-header">
+                  <span class="feed-channel">${item.source_channel || '@radar'}</span>
+                  <span>${(item.timestamp || '').slice(11, 16)}</span>
+                </div>
+                <div class="feed-text">${item.raw_text}</div>
+                <div class="feed-footer">Угроза: ${item.threat_type} · Целей: ${item.quantity}</div>
+              </div>
+            `).join('');
+          } else {
+            stream.innerHTML = '<div style="font-size: 13px; color: var(--muted); text-align: center; padding: 24px;">Воздушное пространство чистое. Сигналов нет.</div>';
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function submitAttendance(st) {
+      const today = new Date().toISOString().slice(0, 10);
+      try {
+        await fetch('/api/v1/school/attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date_str: today, status: st })
+        });
+        const fb = document.getElementById('attFeedback');
+        const labels = { 'IN_PERSON': 'Очное обучение', 'REMOTE_OFFICIAL': 'Дистанционка', 'MISSED_ALARM': 'Пропуск из-за тревоги' };
+        fb.textContent = `Записано: ${labels[st] || st}! Модель обновила статус.`;
+        setTimeout(() => fb.textContent = '', 3500);
+
+        // Update local display
+        const title = document.getElementById('schoolMainStatus');
+        if (st === 'REMOTE_OFFICIAL') {
+          title.className = 'school-status-title remote';
+          title.textContent = 'Дистанционный формат (пользователь)';
+        } else {
+          title.className = 'school-status-title';
+          title.textContent = 'Очное обучение (пользователь)';
+        }
+      } catch (e) {}
+    }
+
+    // AI Copilot with Kokonut UI Step State & OpenRouter
+    async function quickAsk(q) {
+      const field = document.getElementById('chatInput');
+      field.value = q;
+      handleSendMessage();
+    }
+
+    async function handleSendMessage() {
+      const field = document.getElementById('chatInput');
+      const q = field.value.trim();
+      if (!q) return;
+      field.value = '';
+
+      const box = document.getElementById('chatMessages');
+      box.innerHTML += `<div class="chat-bubble user">${q}</div>`;
+      box.scrollTop = box.scrollHeight;
+
+      const loader = document.getElementById('aiLoadingContainer');
+      loader.style.display = 'block';
+
+      if (window.triggerSphereMode) window.triggerSphereMode(1);
+
+      try {
+        const res = await fetch('/api/v1/ai/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: q, preset: currentDistrict, user_name: userName })
+        });
+        loader.style.display = 'none';
+        if (window.triggerSphereMode) window.triggerSphereMode(0);
+        if (res.ok) {
+          const data = await res.json();
+          box.innerHTML += `<div class="chat-bubble bot">${data.answer.replace(/\n/g, '<br>')}</div>`;
+          box.scrollTop = box.scrollHeight;
+        }
+      } catch (e) {
+        loader.style.display = 'none';
+        if (window.triggerSphereMode) window.triggerSphereMode(0);
+        box.innerHTML += `<div class="chat-bubble bot">Связь с радаром временно недоступна.</div>`;
+      }
+    }
+
+    document.getElementById('chatSendBtn').addEventListener('click', handleSendMessage);
+    document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') handleSendMessage(); });
+
+    // WebSocket Live Updates
+    function initWebSocket() {
+      const proto = location.pro tocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${proto}//${location.host}/api/v1/ws`);
+      ws.onmessage = (e) => {
+        try {
+          const m = JSON.parse(e.data);
+          if (m.type === 'threat_update' && m.probability) updateThreatDisplay(m.probability);
+        } catch (err) {}
+      };
+      ws.onclose = () => setTimeout(initWebSocket, 4000);
+    }
+
+    /* ==========================================================================
+       STEP PROGRESS ONBOARDING LOGIC (DesignBookmark Step Progress)
+       ========================================================================== */
+    let currentStep = 0;
+    const TOTAL_STEPS = 4;
+     const modalEl = document.getElementById('onboardModal');
+    const stepBar = document.getElementById('stepBar');
+    const stepDots = document.querySelectorAll('.step-dot');
+    const stepNameSpans = document.querySelectorAll('.step-names span');
+    const nextBtn = document.getElementById('stepNextBtn');
+    const backBtn = document.getElementById('stepBackBtn');
+
+    function renderStep(idx) {
+      currentStep = idx;
+      stepBar.style.width = (idx / (TOTAL_STEPS - 1) * 100) + '%';
+
+      s tepDots.forEach((dot, k) => {
+        dot.className = 'step-dot';
+        if (k < idx) dot.classList.add('done');
+        else if (k === idx) dot.classList.add('active');
+      });
+
+      stepNameSpans.forEach((sp, k) => sp.classList.toggle('on', k <= idx));
+
+      for (let s = 1; s <= TOTAL_STEPS; s++) {
+        const el = document.getElementById('step-' + s);
+        if (el) el.style.display = (s === idx + 1) ? 'block' : 'none';
+      }
+
+      backBtn.style.display = idx > 0 ? 'block' : 'none';
+      nextBtn.textContent = idx === TOTAL_STEPS - 1 ? 'Войти в радар' : 'Далее';
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (currentStep === 0) {
+        userName = document.getElementById('inputName').value.trim() || 'Денис';
+        localStorage.setItem('cta_name', userName);
+        updateLocationUI();
+       } else if (currentStep === 1) {
+        document.getElementById('summaryDistrict').textContent = currentDistrictTitle;
+      }
+
+      if (currentStep < TOTAL_STEPS - 1) {
+        renderStep(currentStep + 1);
+      } else {
+        localStorage.setItem('cta_onboarded', 'true');
+        modalEl.classList.remove('open');
+        updateLocationUI();
+        loadTelemetry();
+      }
+    });
+
+    backBtn.addEventListener('click', () => {
+      if (currentStep > 0) renderStep(currentStep - 1);
+    });
+
+    document.querySelectorAll('.district-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('.district-opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        currentDistrict = opt.getAttribute('data-district');
+        currentDistrictTitle = opt.getAttribute('data-title');
+        localStorage.setItem('cta_district', currentDistrict);
+        localStorage.setItem('cta_district_title', currentDistrictTitle);
+        document.getElementById('summaryDistrict').textContent = currentDistrictTitle;
+        updateLocationUI();
+      });
+    });
+
+    document.querySelectorAll('.sw').forEach(sw => {
+      sw.addEventListener('click', () => {
+        const on = sw.getAttribute('aria-checked') === 'true';
+        sw.setAttribute('aria-checked', !on);
+      });
+    });
+
+    function openDistrictSelect() {
+      renderStep(1);
+      modalEl.classList.add('open');
+    }
+
+    if (!onboarded) {
+      renderStep(0);
+      modalEl.classList.add('open');
+    }
+
+    function openInstallModal() { document.getElementById('installModal').classList.add('open'); }
+    function closeInstallModal() { document.getElementById('installModal').classList.remove('open'); }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    /* ==========================================================================
+       THINKING SPHERE WebGL2 (DesignBookmark exact impl ementation)
+       1,600 dots with depth of field breathing in 3D, spinning with inertia.
+       ========================================================================== */
+    (() => {
+      const cv = document.getElementById('sphere');
+      if (!) r      const lerp = (a, b, t) => a + (b - a) * t;
+      const Sp = (x, k, c) => ({ x, v: 0, t: x, k, c });
+      const st = (s, dt) => { s.v += (-s.k * (s.x - s.t) - s.c * s.v) * dt; s.x += s.v * dt; };
+
+      const gl = cv.getContext('webgl2', { premultipliedAlpha: true, antialias: false });
+      if (!gl) return;
+
+      const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+      const prog = gl.createProgram();
+      gl.attachShader(prog, sh(gl.VERTEX_SHADER, `#version 300 es
+in vec4 a; in float b; uniform vec2 uRes; out float vA; out float vS;
+void main(){ vec2 c = a.xy/uRes*2. - 1.; gl_Position = vec4(c.x, -c.y, 0., 1.); gl_PointSize = a.z; vA = a.w; vS = max(b, 1.8/a.z); }`));
+      gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, `#version 300 es
+precision highp float; in float vA; in float vS; uniform vec3 uCol; out vec4 o;
+void main(){ float r = length(gl_PointCoord - .5)*2.; float e = (1. - smoothstep(1. - vS, 1., r))*vA; o = vec4(uCol*e, e); }`));
+      gl.linkProgram(prog);
+      const uRes = gl.getUniformLocation(prog, 'uRes'), uCol = gl.getUniformLocation(prog, 'uCol');
+
+      const N = 1200, STRIDE = 5, buf = new Float32Array(N * STRIDE);
+      const vbo = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vbo); gl.bufferData(gl.ARRAY_BUFFER, buf.byteLength, gl.DYNAMIC_DRAW);
+      const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+      const la = gl.getAttribLocation(prog, 'a'), lb = gl.getAttribLocation(prog, 'b');
+      gl.enableVertexAttribArray(la); gl.vertexAttribPointer(la, 4, gl.FLOAT, false, STRIDE * 4, 0);
+      gl.enableVertexAttribArray(lb); gl.vertexAttribPointer(lb, 1, gl.FLOAT, false, STRIDE * 4, 16);
+      gl.bindVertexArray(null);
+
+      const bx = new Float32Array(N), by = new Float32Array(N), bz = new Float32Array(N);
+      const s = new Float32Array(N), v = new Float32Array(N), dl = new Float32Array(N), tx = new Float32Array(N), ty = new Float32Array(N);
+      const jx = new Float32Array(N), jy = new Float32Array(N), sw = new Float32Array(N);
+      const GA = Math.PI * (3 - Math.sqrt(5));
+      for (let i = 0; i < N; i++) {
+        const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = GA * i;
+        bx[i] = Math.cos(th) * r; by[i] = y; bz[i] = Math.sin(th) * r;
+        jx[i] = (Math.random() - .5) * 60; jy[i] = 30 + Math.random() * 50; sw[i] = .7 + Math.random() * .6;
+      }
+
+      let W = 0, H = 0, dpr = 1, minx = 0, maxx = 1;
+      function targets() {
+        if (!W) return;
+        const o = document.createElement('canvas'); o.width = Math.ceil(W); o.height = Math.ceil(H);
+        const x = o.getContext('2d');
+        const fs = Math.round(clamp(W * .16, 32, 52));
+        x.fillStyle = 'white'; x.font = `600 ${fs}px Inter, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+        x.fillText('Готов.', W / 2, H / 2);
+        const img = x.getImageData(0, 0, o.width, o.height).data; let list = [];
+        for (let g = 1.2; g < 4; g += .1) {
+          list = [];
+          for (let y = 0; y < o.height; y += g) for (let xx = 0; xx < o.width; xx += g) {
+            const k = ((y | 0) * o.width + (xx | 0)) * 4 + 3;
+            if (img[k] > 140) list.push(xx, y);
+          }
+          if (list.length / 2 <= N) break;
+        }
+        const M = list.length / 2; if (!M) return;
+        const idx = Array.from({ length: M }, (_, i) => i);
+        minx = 1e9; maxx = -1e9;
+        for (let i = 0; i < N; i++) {
+          const k = idx[i % M];
+          tx[i] = list[k * 2]; ty[i] = list[k * 2 + 1];
+          minx = Math.min(minx, tx[i]); maxx = Math.max(maxx, tx[i]);
+        }
+      }
+
+      function resize() {
+        const r = cv.getBoundingClientRect(); if (!r.width) return;
+        W = r.width; H = r.height; dpr = Math.min(2, window.devicePixelRatio || 1);
+        cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+        targets();
+      }
+      window.triggerSphereResize = resize;
+      window.addEventListener('resize', resize);
+      setTimeout(resize, 200);
+
+      let t = 0, mode = 0, yaw = 0, yawV = .38, drag = null, hoverOn = false, mx = 0, my = 0;
+      const pitch = Sp(.32, 90, 14), hx = Sp(0, 120, 16), hy = Sp(0, 120, 16);
+
+      function setSphereMode(m) {
+        mode = m; const span = Math.max(1, maxx - minx);
+        for (let i = 0; i < N; i++) dl[i] = m ? t + .12 + (tx[i] - minx) / span * .85 : t + Math.random() * .4;
+      }
+      window.triggerSphereMode = setSphereMode;
+
+      const local = e => { const b = cv.getBoundingClientRect(); return [(e.clientX - b.left) * W / b.width, (e.clientY - b.top) * H / b.height]; };
+      cv.addEventListener('pointerdown', e => {
+        cv.setPointerCapture(e.pointerId);
+        const [x, y] = local(e); drag = { x0: x, y0: y, x, y, t, moved: false, vx: 0 };
+      });
+      cv.addEventListener('pointermove', e => {
+        const [x, y] = local(e); mx = x; my = y;
+        if (!drag) return;
+        const dx = x - drag.x, dy = y - drag.y, dt = Math.max(1 / 240, t - drag.t);
+        if (Math.hypot(x - drag.x0, y - drag.y0) > 4) drag.moved = true;
+        if (drag.moved) { yaw += dx * .011; drag.vx = lerp(drag.vx, dx * .011 / dt, .5); yawV = drag.vx; pitch.t = clamp(pitch.t + dy * .006, -.6, 1.1); }
+        drag.x = x; drag.y = y; drag.t = t;
+      });
+      const endDrag = () => { if (!drag) return; if (!drag.moved) setSphereMode(mode ? 0 : 1); drag = null; };
+      cv.addEventListener('pointerup', endDrag);
+      cv.addEventListener('pointercancel', endDrag);
+
+      function drawSphere(dt) {
+        if (!W) return;
+        if (!drag) { yawV += (.38 - yawV) * (1 - Math.exp(-dt * 1.4)); pitch.t += (.32 - pitch.t) * (1 - Math.exp(-dt * .8)); }
+        yaw += yawV * dt;
+        const cx = W / 2, cy = H / 2, R = Math.min(68, W * .22, H * .26);
+        st(hx, dt); st(hy, dt); st(pitch, dt);
+        const ry = yaw + hx.x * .5, rx = pitch.x + hy.x * .4;
+        const cyw = Math.cos(ry), syw = Math.sin(ry), cxp = Math.cos(rx), sxp = Math.sin(rx);
+        const F = 480, k = 72, c = 11;
+
+        for (let i = 0; i < N; i++) {
+          const px = bx[i], py = by[i], pz = bz[i];
+          const nz = .08 * Math.sin(px * 2.3 + t * .9) * Math.sin(py * 2.9 - t * .7);
+          const r = R * (1 + nz);
+          let x = (px * cyw - pz * syw) * r, z = (px * syw + pz * cyw) * r, y = py * r;
+          const y2 = y * cxp - z * sxp; z = y * sxp + z * cxp; y = y2;
+          const sc = F / (F - z); let sx = cx + x * sc, sy = cy + y * sc;
+          const front = clamp((z / R + 1) / 2, 0, 1);
+          let size = (1.4 + .7 * front) * sc;
+          let al = (.2 + .8 * front);
+
+          const tg = t >= dl[i] ? mode : 1 - mode;
+          if (s[i] !== tg || v[i] !== 0) {
+            const h = dt / 2;
+            for (let n = 0; n < 2; n++) { v[i] += (-k * (s[i] - tg) - c * v[i]) * h; s[i] += v[i] * h; }
+            if (Math.abs(s[i] - tg) < 1e-4) { s[i] = tg; v[i] = 0; }
+          }
+          let X = sx, Y = sy; const u = clamp(s[i], 0, 1);
+          if (s[i] > 0) {
+            const p1x = sx - 40 * sw[i], p1y = sy - 20;
+            const p2x = tx[i] + jx[i], p2y = ty[i] - jy[i];
+            const e = 1 - u, b0 = e * e * e, b1 = 3 * e * e * u, b2 = 3 * e * u * u, b3 = u * u * u;
+            X = b0 * sx + b1 * p1x + b2 * p2x + b3 * tx[i]; Y = b0 * sy + b1 * p1y + b2 * p2y + b3 * ty[i];
+            size = lerp(size, 2.2, u); al = lerp(al, 1, u);
+          }
+          const q = i * STRIDE;
+          buf[q] = X * dpr; buf[q + 1] = Y * dpr; buf[q + 2] = size * dpr; buf[q + 3] = clamp(al, 0, 1); buf[q + 4] = .6;
+        }
+
+        gl.viewport(0, 0, cv.width, cv.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.useProgram(prog);
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, buf);
+        gl.uniform2f(uRes, cv.width, cv.height);
+        gl.uniform3f(uCol, 0.23, 0.82, 0.48); // Emerald glowing dots
+        gl.drawArrays(gl.POINTS, 0, N);
+      }
+
+      Motion.register({
+        frame(dt) { t += dt; },
+        render() { drawSphere(0.016); }
+      });
+    })();
+
+    loadTelemetry();
+    initWebSocket();
+    setInterval(loadTelemetry, 8000);
+
+    /* ==========================================================================
+       NEPTUN.IN.UA MAPLIBRE GL ENGINE
+       Real Dark Vector Tiles (OpenFreeMap) + GeoJSON Range Rings + Shahed Vectors
+       ========================================================================== */
+    function setQuickAttendance(status, btn) {
+      document.querySelectorAll('.quick-att-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      submitAttendance(status);
+      const badge = document.getElementById('currentStatusBadge');
+      if (status === 'IN_PERSON') badge.textContent = 'Очно';
+      else if (status === 'REMOTE_OFFICIAL') badge.textContent = 'Дистант';
+      else badge.textContent = 'Тревога';
+    }
+
+    let neptunMap = null;
+    let neptunMarkers = [];
+    let neptunSimulate = true;
+
+    const TAIROVO_COORDS = [30.7090, 46.3906]; // [lon, lat]
+
+    const SIM_DRONES = [
+      { id: '#SH-401', type: 'Shahed-136', coords: [30.7950, 46.1820], heading: 332, speed: 185, alt: 140, eta: 9, source: 'Чёрное море' },
+      { id: '#SH-402', type: 'Shahed-136', coords: [31.3500, 46.5200], heading: 258, speed: 190, alt: 180, eta: 18, source: 'Очаков / Кинбурн' },
+      { id: '#SH-403', type: 'Shahed-136', coords: [30.4100, 46.1200], heading: 38, speed: 175, alt: 120, eta: 14, source: 'Затока / Лиман' }
+    ];
+
+    function createCircleGeoJson(center, radiusKm, points = 64) {
+      const lon = center[0], lat = center[1];
+      const distanceX = radiusKm / (111.320 * Math.cos(lat * Math.PI / 180));
+      const distanceY = radiusKm / 110.574;
+      const ring = [];
+      for (let i = 0; i < points; i++) {
+        const theta = (i / points) * (2 * Math.PI);
+        ring.push([lon + distanceX * Math.cos(theta), lat + distanceY * Math.sin(theta)]);
+      }
+      ring.push(ring[0]);
+      return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring] } };
+    }
+
+    function initNeptunMapEngine() {
+      if (neptunMap || typeof maplibregl === 'undefined') return;
+      const el = document.getElementById('neptunMap');
+      if (!el) return;
+
+      neptunMap = new maplibregl.Map({
+        container: 'neptunMap',
+        style: 'https://tiles.openfreemap.org/styles/dark',
+        center: TAIROVO_COORDS,
+        zoom: 9.8,
+        minZoom: 5,
+        maxZoom: 16,
+        attributionControl: false
+      });
+
+      neptunMap.addControl(new maplibregl.NavigationControl({ showCompass: true, showZoom: true }), 'top-right');
+
+      neptunMap.on('load', () => {
+        // Range Rings Sources and Layers
+        const r10 = createCircleGeoJson(TAIROVO_COORDS, 10);
+        const r30 = createCircleGeoJson(TAIROVO_COORDS, 30);
+        const r60 = createCircleGeoJson(TAIROVO_COORDS, 60);
+
+        neptunMap.addSource('ring-60', { type: 'geojson', data: r60 });
+        neptunMap.addLayer({
+          id: 'ring-60-line',
+          type: 'line',
+          source: 'ring-60',
+          paint: { 'line-color': '#ff5a5f', 'line-width': 1.5, 'line-dasharray': [4, 3], 'line-opacity': 0.6 }
+        });
+        neptunMap.addLayer({
+          id: 'ring-60-fill',
+          type: 'fill',
+          source: 'ring-60',
+          paint: { 'fill-color': '#ff5a5f', 'fill-opacity': 0.02 }
+        });
+
+        neptunMap.addSource('ring-30', { type: 'geojson', data: r30 });
+        neptunMap.addLayer({
+          id: 'ring-30-line',
+          type: 'line',
+          source: 'ring-30',
+          paint: { 'line-color': '#ff9f0a', 'line-width': 1.5, 'line-dasharray': [5, 3], 'line-opacity': 0.7 }
+        });
+        neptunMap.addLayer({
+          id: 'ring-30-fill',
+          type: 'fill',
+          source: 'ring-30',
+          paint: { 'fill-color': '#ff9f0a', 'fill-opacity': 0.03 }
+        });
+
+        neptunMap.addSource('ring-10', { type: 'geojson', data: r10 });
+        neptunMap.addLayer({
+          id: 'ring-10-line',
+          type: 'line',
+          source: 'ring-10',
+          paint: { 'line-color': '#34d17a', 'line-width': 1.8, 'line-dasharray': [3, 2], 'line-opacity': 0.8 }
+        });
+        neptunMap.addLayer({
+          id: 'ring-10-fill',
+          type: 'fill',
+          source: 'ring-10',
+          paint: { 'fill-color': '#34d17a', 'fill-opacity': 0.04 }
+        });
+
+        // Add Tairovo Center Home Marker
+        const homeEl = document.createElement('div');
+        homeEl.className = 'neptun-home-marker';
+        homeEl.innerHTML = '<div class="neptun-pulse-ring"></div><div class="neptun-dot"></div><div class="neptun-home-label">Таирова · Гармония</div>';
+        new maplibregl.Marker({ element: homeEl, anchor: 'center' })
+          .setLngLat(TAIROVO_COORDS)
+          .addTo(neptunMap);
+
+        // Render Drone Markers
+        renderDroneMarkers();
+      });
+    }
+
+    function renderDroneMarkers() {
+      // Clear existing markers
+      neptunMarkers.forEach(m => m.remove());
+      neptunMarkers = [];
+
+      if (!neptunSimulate || !neptunMap) return;
+
+      SIM_DRONES.forEach(drone => {
+        const dEl = document.createElement('div');
+        dEl.className = 'neptun-drone-marker';
+        dEl.innerHTML = `
+          <div class="drone-pulse-circle"></div>
+          <svg viewBox="0 0 24 24" class="drone-svg" style="transform: rotate(${drone.heading}deg);">
+            <polygon points="12 2 2 22 12 18 22 22"/>
+          </svg>
+          <div class="drone-tag">
+            <b>${drone.id}</b>
+            <span>${drone.speed} км/ч · ~${drone.eta}м</span>
+          </div>
+        `;
+
+        dEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const pop = document.getElementById('targetDetailCard');
+          if (pop) {
+            document.getElementById('targetPopupId').textContent = `${drone.id} · ${drone.type}`;
+            document.getElementById('targetPopupEta').textContent = `Подлёт ~${drone.eta} мин`;
+            document.getElementById('targetPopupDesc').textContent = `Сектор: ${drone.source} → Таирова · Курс: ${drone.heading}° · Скорость: ${drone.speed} км/ч · Высота: ${drone.alt}м`;
+            pop.style.display = 'block';
+          }
+          neptunMap.flyTo({ center: drone.coords, zoom: 11, speed: 1.2 });
+        });
+
+        const marker = new maplibregl.Marker({ element: dEl, anchor: 'center' })
+          .setLngLat(drone.coords)
+          .addTo(neptunMap);
+
+        neptunMarkers.push(marker);
+      });
+    }
+
+    function centerTacticalMap() {
+      const pop = document.getElementById('targetDetailCard');
+      if (pop) pop.style.display = 'none';
+      if (neptunMap) {
+        neptunMap.flyTo({ center: TAIROVO_COORDS, zoom: 10, speed: 1.4 });
+      }
+    }
+
+    function toggleMapSimulation() {
+      neptunSimulate = !neptunSimulate;
+      const btn = document.getElementById('btnMapTest');
+      if (btn) btn.classList.toggle('active', neptunSimulate);
+      const pop = document.getElementById('targetDetailCard');
+      if (!neptunSimulate && pop) pop.style.display = 'none';
+      renderDroneMarkers();
+    }
+
+    window.triggerMapResize = () => {
+      if (!neptunMap) {
+        initNeptunMapEngine();
+      } else {
+        neptunMap.resize();
+      }
+    };
+
+  </script>
+</body>
+
+</html>

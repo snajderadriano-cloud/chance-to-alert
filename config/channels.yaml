@@ -1,0 +1,201 @@
+# Telegram Channel Monitoring Configuration
+# Chance to Alert.App
+
+channels:
+  # --- 1. ОФИЦИАЛЬНЫЕ И СТРАТЕГИЧЕСКИЕ РАДАРЫ ---
+  - id: "kpszsu"
+    name: "Повітряні Сили ЗС України"
+    username: "kpszsu"
+    url: "https://t.me/kpszsu"
+    enabled: true
+    reliability_weight: 0.99
+    channel_type: "OFFICIAL_RADAR"
+    threat_focus: ["SHAHED", "CRUISE_MISSILE", "BALLISTIC", "TACTICAL_AVIATION"]
+    language: "uk"
+    description: "Official Air Force Command of the Armed Forces of Ukraine"
+
+  - id: "vanek_nikolaev"
+    name: "Николаевский Ванёк"
+    username: "vanek_nikolaev"
+    url: "https://t.me/vanek_nikolaev"
+    enabled: true
+    reliability_weight: 0.95
+    channel_type: "AIR_THREAT_RADAR"
+    threat_focus: ["SHAHED", "CRUISE_MISSILE", "BALLISTIC", "TACTICAL_AVIATION", "RECON_DRONE"]
+    language: "uk"
+    description: "Primary operational tactical radar updates for Southern Ukraine and Odesa"
+
+  - id: "war_monitor"
+    name: "Monitor"
+    username: "war_monitor"
+    url: "https://t.me/war_monitor"
+    enabled: true
+    reliability_weight: 0.95
+    channel_type: "AIR_THREAT_RADAR"
+    threat_focus: ["CRUISE_MISSILE", "BALLISTIC", "TACTICAL_AVIATION", "SHAHED"]
+    language: "uk"
+    description: "Strategic missile and tactical aviation tracking across Ukraine"
+
+  - id: "raketa_trevoga"
+    name: "Ракета / Тревога"
+    username: "raketa_trevoga"
+    url: "https://t.me/raketa_trevoga"
+    enabled: true
+    reliability_weight: 0.92
+    channel_type: "AIR_THREAT_RADAR"
+    threat_focus: ["BALLISTIC", "CRUISE_MISSILE", "SHAHED"]
+    language: "uk"
+    description: "Real-time missile and air raid alert alerts"
+
+  # --- 2. ЛОКАЛЬНЫЕ ОДЕССКИЕ МОНИТОРИНГИ ---
+  - id: "odessa_inform"
+    name: "Одесса Информ"
+    username: "odessa_inform"
+    url: "https://t.me/odessa_inform"
+    enabled: true
+    reliability_weight: 0.90
+    channel_type: "LOCAL_MONITOR"
+    threat_focus: ["SHAHED", "BALLISTIC", "CRUISE_MISSILE", "RECON_DRONE"]
+    language: "uk"
+    description: "Regional Odesa civilian monitoring and local radar alerts"
+
+  - id: "odessa_infonews"
+    name: "Одеса Інфо | Новини"
+    username: "odessa_infonews"
+    url: "https://t.me/odessa_infonews"
+    enabled: true
+    reliability_weight: 0.88
+    channel_type: "LOCAL_MONITOR"
+    threat_focus: ["SHAHED", "BALLISTIC", "CRUISE_MISSILE"]
+    language: "uk"
+    description: "Local Odesa news and threat tracking"
+
+  - id: "Shturval_media"
+    name: "Штурвал Одеса / Миколаїв"
+    username: "Shturval_media"
+    url: "https://t.me/Shturval_media"
+    enabled: true
+    reliability_weight: 0.90
+    channel_type: "LOCAL_MONITOR"
+    threat_focus: ["SHAHED", "RECON_DRONE", "BALLISTIC"]
+    language: "uk"
+    description: "Maritime and coastal tactical radar for Odesa & Mykolaiv oblasts"
+
+  - id: "delta_odesa"
+    name: "Дельта Одеса"
+    username: "delta_odesa"
+    url: "https://t.me/delta_odesa"
+    enabled: true
+    reliability_weight: 0.90
+    channel_type: "LOCAL_MONITOR"
+    threat_focus: ["SHAHED", "RECON_DRONE"]
+    language: "uk"
+    description: "Coastal Odesa district air space monitoring"
+
+  - id: "odessa_knight"
+    name: "Одеський Лицар"
+    username: "odessa_knight"
+    url: "https://t.me/odessa_knight"
+    enabled: true
+    reliability_weight: 0.88
+    channel_type: "LOCAL_MONITOR"
+    threat_focus: ["SHAHED", "BALLISTIC"]
+    language: "uk"
+    description: "Odesa regional defense monitoring"
+
+  - id: "ReniHub"
+    name: "Рені Хаб"
+    username: "ReniHub"
+    url: "https://t.me/ReniHub"
+    enabled: true
+    reliability_weight: 0.85
+    channel_type: "LOCAL_MONITOR"
+    threat_focus: ["SHAHED"]
+    language: "uk"
+    description: "Danube ports tracking (Izmail/Reni/Kiliya) to isolate non-Odesa strikes"
+
+  # --- 3. ГОРОДСКИЕ И НОВОСТНЫЕ КАНАЛЫ (ТРЕБУЮТ ФИЛЬТРАЦИИ РЕКЛАМЫ И ШУМА) ---
+  - id: "xydessa_live"
+    name: "XYDESSA | Ху**ая Одесса"
+    username: "xydessa_live"
+    url: "https://t.me/xydessa_live"
+    enabled: true
+    reliability_weight: 0.78
+    channel_type: "NEWS_AGGREGATOR"
+    filter_ads: true
+    threat_focus: ["SHAHED", "BALLISTIC", "CRUISE_MISSILE", "UNKNOWN"]
+    language: "ru"
+    description: "Largest Odesa city community channel. Requires aggressive ad and city noise filtering"
+
+  - id: "UaOnlii"
+    name: "Україна Online"
+    username: "UaOnlii"
+    url: "https://t.me/UaOnlii"
+    enabled: true
+    reliability_weight: 0.72
+    channel_type: "NEWS_AGGREGATOR"
+    filter_ads: true
+    threat_focus: ["BALLISTIC", "CRUISE_MISSILE", "SHAHED"]
+    language: "uk"
+    description: "High-volume nationwide news aggregator. Ads and non-threat news filtered out"
+
+  - id: "times_ukraina"
+    name: "Times of Ukraine"
+    username: "times_ukraina"
+    url: "https://t.me/times_ukraina"
+    enabled: true
+    reliability_weight: 0.70
+    channel_type: "NEWS_AGGREGATOR"
+    filter_ads: true
+    threat_focus: ["BALLISTIC", "CRUISE_MISSILE"]
+    language: "uk"
+    description: "Nationwide breaking news. Aggressive spam and ad filter applied"
+
+  - id: "voynareal"
+    name: "Реальная Война"
+    username: "voynareal"
+    url: "https://t.me/voynareal"
+    enabled: true
+    reliability_weight: 0.75
+    channel_type: "NEWS_AGGREGATOR"
+    filter_ads: true
+    threat_focus: ["BALLISTIC", "CRUISE_MISSILE", "SHAHED"]
+    language: "ru"
+    description: "War news aggregator with strict advertising and political noise filter"
+
+  # --- 4. ДЕПАРТАМЕНТ ОБРАЗОВАНИЯ И ИНФРАСТРУКТУРА (ДИСТАНЦИОННОЕ ОБУЧЕНИЕ) ---
+  - id: "dep_osvity"
+    name: "Департамент освіти та науки Одеської міської ради"
+    username: "dep_osvity"
+    url: "https://t.me/dep_osvity"
+    enabled: true
+    reliability_weight: 0.99
+    channel_type: "EDUCATION_OFFICIAL"
+    threat_focus: []
+    language: "uk"
+    description: "Official municipal decisions on school remote learning, kindergartens, and offline education"
+
+  - id: "odessa_svet"
+    name: "Свет / вода Одесса | Графики"
+    username: "svet_odessaa"
+    url: "https://t.me/svet_odessaa"
+    enabled: true
+    reliability_weight: 0.88
+    channel_type: "MUNICIPAL_UTILITIES"
+    threat_focus: []
+    language: "ru"
+    description: "Blackouts, heating, and electric transport status predicting remote school operations"
+
+  # --- 5. НЕПТУН — общеукраинский радар БПЛА и Шахедов ---
+  - id: "neptun_radar"
+    name: "НЕПТУН — Карта шахедів"
+    username: "neptun_radar"
+    url: "https://t.me/+MG5TGFCyAuRnMTYy"
+    invite_link: "MG5TGFCyAuRnMTYy"
+    enabled: true
+    reliability_weight: 0.94
+    channel_type: "AIR_THREAT_RADAR"
+    filter_ads: false
+    threat_focus: ["SHAHED", "RECON_DRONE", "CRUISE_MISSILE", "BALLISTIC"]
+    language: "uk"
+    description: "358k subscribers. Real-time БпЛА/Shahed map across all Ukrainian oblasts. Very high signal quality, low noise."
