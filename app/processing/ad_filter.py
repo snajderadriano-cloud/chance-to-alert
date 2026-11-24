@@ -32,6 +32,22 @@ class FilterResult:
 class ContentFilter:
     """Detects and suppresses ads, casino spam, clickbait, and unrelated news."""
 
+    TRUSTED_RADAR_CHANNELS = {
+        "kpszsu",
+        "vanek_nikolaev",
+        "war_monitor",
+        "raketa_trevoga",
+        "odessa_inform",
+        "odessa_infonews",
+        "shturval_media",
+        "delta_odesa",
+        "odessa_knight",
+        "neptun_radar",
+        "xydessa_live",
+        "odesa_now",
+        "suspilneodesa",
+    }
+
     # Explicit advertising labels
     AD_PATTERNS: List[Pattern] = [
         re.compile(r"(?:^|\s)(#реклама|реклама|на\s+правах\s+реклами|партнерський\s+матеріал|erid\s*:\s*\w+)(?:\s|$)", re.I),
@@ -59,14 +75,17 @@ class ContentFilter:
         re.compile(r"t\.me/joinchat/[A-Za-z0-9_-]+", re.I),
     ]
 
-    # Genuine air threat indicators (must have at least one to qualify as threat)
+    # Genuine air threat indicators (both Ukrainian and Russian variants, telemetry, levels)
     THREAT_TRIGGER_PATTERNS: List[Pattern] = [
         # Aerial targets
-        re.compile(r"\b(шахед|шахеди|шахедів|бпла|мопед|мопеди|дрон|дрони|ракета|ракети|ракет|балістик\w*|іскандер\w*|кинджал\w*|калібр\w*|х-101|х-59|каб\w*|су-34|су-35|авіаці\w*)\b", re.I),
-        # Alert / Radar movement verbs
-        re.compile(r"\b(тривог\w*|відбій|відбою|вибух\w*|пуск\w*|виліт\w*|курсом\s+на|в\s+напрямку|в\s+бік|підліт\w*|фіксується|працює\s+ппо|робота\s+ппо|збито|чисто)\b", re.I),
-        # Urgent alarms
-        re.compile(r"\b(укриття|пройдіть\s+в\s+укриття|небезпека|загроза|не\s+ігноруйте)\b", re.I),
+        re.compile(r"\b(шахед\w*|бпла|мопед\w*|дрон\w*|ракета|ракети|ракет\w*|балістик\w*|баллистик\w*|іскандер\w*|искандер\w*|кинджал\w*|кинжал\w*|калібр\w*|калибр\w*|х-101|х-59|каб\w*|су-34|су-35|авіаці\w*|авиаци\w*|реактивн\w*)\b", re.I),
+        # Alert / Radar movement verbs & telemetry
+        re.compile(r"\b(тривог\w*|тревог\w*|відбій\w*|отбой\w*|вибух\w*|взрыв\w*|пуск\w*|виліт\w*|вылет\w*|курсом\s+на|в\s+напрямку|в\s+направлении|в\s+бік|в\s+сторону|підліт\w*|подлет\w*|фіксується|фиксируется|працює\s+ппо|работает\s+пво|робота\s+ппо|збито|сбито|чисто)\b", re.I),
+        # Tactical vectors & distance
+        re.compile(r"\b((з|с)\s+моря|(з|с)\s+криму|(с|из)\s+крыма|\d+\s+на\s+[а-яіїєґa-z]+|\d+\s*км)\b", re.I),
+        # Urgent alarms & alert levels
+        re.compile(r"\b(укриття|укрытие|пройдіть\s+в\s+укриття|внимание|небезпека|опасность|загроза|угроза|не\s+ігноруйте|рівень\s+тривоги|уровень\s+тревоги)\b", re.I),
+        re.compile(r"\b(жовтий|желтый|червоний|красный)\s+(рівень|уровень)\b", re.I),
     ]
 
     def filter_post(self, text: str, channel_username: str = "") -> FilterResult:
@@ -155,6 +174,19 @@ class ContentFilter:
                 classification=PostClassification.THREAT_SIGNAL,
                 confidence=0.95,
                 detected_keywords=threat_matches[:5],
+                clean_text=text,
+                rejection_reason=None,
+            )
+
+        # 5b. Trusted radar channel priority rule:
+        # Channels whose primary sole purpose is tactical air defense tracking bypass news filter
+        clean_user = channel_username.lower().lstrip("@")
+        if clean_user in self.TRUSTED_RADAR_CHANNELS:
+            return FilterResult(
+                is_threat_relevant=True,
+                classification=PostClassification.THREAT_SIGNAL,
+                confidence=0.90,
+                detected_keywords=["trusted_radar_telemetry"],
                 clean_text=text,
                 rejection_reason=None,
             )

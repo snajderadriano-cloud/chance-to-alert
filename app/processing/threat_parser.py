@@ -117,7 +117,10 @@ class ThreatParser:
                 detected_types.append(tt)
 
         if not detected_types:
-            detected_types = [ThreatType.UNKNOWN]
+            if any(w in lower for w in ("бпла", "дрон", "мопед", "шахед", "реактивн", "км", "рівень", "уровень", "курсом", "⚠️", "✈️")):
+                detected_types = [ThreatType.SHAHED]
+            else:
+                detected_types = [ThreatType.UNKNOWN]
 
         # 3. Extract quantity
         qty = 1
@@ -161,7 +164,7 @@ class ThreatParser:
         trajectory: Optional[TrajectoryVector] = None
 
         if not negated_heading:
-            if towards_odesa or any("одес" in p or "чорноморськ" in p for p in detected_places):
+            if towards_odesa or any(any(k in p for k in ("одес", "чорномор", "черномор", "таїров", "таиров", "совиньон", "гармоні", "гармони")) for p in detected_places):
                 target_heading = "Одеса"
         else:
             target_heading = "інший напрямок"

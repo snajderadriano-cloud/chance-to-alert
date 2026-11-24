@@ -2590,8 +2590,16 @@ void main(){ float r = length(gl_PointCoord - .5)*2.; float e = (1. - smoothstep
       }
 
       Motion.register({
-        frame(dt) { t += dt; },
-        render() { drawSphere(0.016); }
+        frame(dt) {
+          if (typeof curTab !== 'undefined' && curTab === 4) {
+            t += dt;
+          }
+        },
+        render() {
+          if (typeof curTab !== 'undefined' && curTab === 4) {
+            drawSphere(0.016);
+          }
+        }
       });
     })();
 
